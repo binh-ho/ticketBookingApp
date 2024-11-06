@@ -1,0 +1,60 @@
+
+services:
+  # Laravel Backend Service
+  backend:
+    build:
+      context: ./app-backend
+      dockerfile: Dockerfile
+    image: laravel_app
+    container_name: laravel_backend
+    restart: unless-stopped
+    volumes:
+      - ./app-backend:/var/www
+    ports:
+      - "8000:80"       # Map host port 8000 to container port 80
+    networks:
+      - app-network
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=laravel
+      - DB_USERNAME=root
+      - DB_PASSWORD=rootpassword
+  
+  frontend:
+    build:
+      context: ./app-frontend
+      dockerfile: Dockerfile
+    image: react_app
+    container_name: react_frontend
+    restart: unless-stopped
+    volumes:
+      - ./app-frontend:/app
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+  # Database Service (as previously configured)
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: root
+      MYSQL_PASSWORD: rootpassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:
